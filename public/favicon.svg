@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Space background -->
+  <circle cx="32" cy="32" r="32" fill="#0a0e17"/>
+  <!-- Orbit ring -->
+  <ellipse cx="32" cy="32" rx="28" ry="10" fill="none" stroke="#0b3d91" stroke-width="1.5" opacity="0.6"/>
+  <!-- Planet / outpost base -->
+  <circle cx="32" cy="32" r="12" fill="#1e3a5f"/>
+  <circle cx="32" cy="32" r="10" fill="#0b3d91"/>
+  <!-- Outpost dome -->
+  <path d="M26 32 Q32 20 38 32" fill="#fbbf24" opacity="0.9"/>
+  <!-- Stars -->
+  <circle cx="10" cy="12" r="1" fill="#f0f9ff"/>
+  <circle cx="52" cy="8" r="1.2" fill="#f0f9ff"/>
+  <circle cx="8" cy="50" r="0.8" fill="#f0f9ff"/>
+  <circle cx="56" cy="48" r="1" fill="#f0f9ff"/>
+  <circle cx="48" cy="22" r="0.6" fill="#f0f9ff"/>
+</svg>

@@ -1,0 +1,86 @@
+@import 'tailwindcss';
+
+/*
+ * Outpost Sol-1: Mission Commander
+ * Global design tokens and base styles
+ */
+
+@theme {
+  --color-space-black: #0a0e17;
+  --color-space-deep: #111827;
+  --color-space-blue: #1e3a5f;
+  --color-nasa-blue: #0b3d91;
+  --color-nasa-red: #fc3d21;
+  --color-mars-orange: #e07a3a;
+  --color-mars-dust: #c4956a;
+  --color-sol-gold: #fbbf24;
+  --color-life-green: #22c55e;
+  --color-alert-red: #ef4444;
+  --color-shield-cyan: #06b6d4;
+  --color-hull-gray: #6b7280;
+  --color-starfield: #f0f9ff;
+
+  --font-family-display: 'Orbitron', ui-sans-serif, system-ui, sans-serif;
+  --font-family-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-family-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* ── Base resets ─────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family-body);
+  background-color: var(--color-space-black);
+  color: var(--color-starfield);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── Utility classes ─────────────────────────────────────── */
+
+.font-display {
+  font-family: var(--font-family-display);
+}
+
+.font-mono {
+  font-family: var(--font-family-mono);
+}
+
+.text-glow {
+  text-shadow: 0 0 8px currentColor, 0 0 24px currentColor;
+}
+
+/* ── Scrollbar styling ───────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-space-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-nasa-blue);
+  border-radius: 3px;
+}
+
+/* ── Selection ───────────────────────────────────────────── */
+
+::selection {
+  background-color: var(--color-nasa-blue);
+  color: var(--color-starfield);
+}
