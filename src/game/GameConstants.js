@@ -235,3 +235,4 @@ export const SALVAGE_TYPES = {
     value: 20,
   },
 }
+

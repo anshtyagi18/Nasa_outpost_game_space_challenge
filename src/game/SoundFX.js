@@ -259,3 +259,4 @@ class SoundFX {
 
 export const sound = new SoundFX()
 export default sound
+

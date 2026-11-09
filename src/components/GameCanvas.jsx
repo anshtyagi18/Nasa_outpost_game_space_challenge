@@ -91,3 +91,4 @@ const GameCanvas = forwardRef(function GameCanvas(
 })
 
 export default GameCanvas
+

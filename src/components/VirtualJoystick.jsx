@@ -74,3 +74,4 @@ export default function VirtualJoystick({ onMove, onDash }) {
     </div>
   )
 }
+

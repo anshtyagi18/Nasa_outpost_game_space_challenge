@@ -99,3 +99,4 @@ export default function UpgradeModal({ choices = [], onSelect }) {
     </div>
   )
 }
+

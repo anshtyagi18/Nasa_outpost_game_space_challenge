@@ -1,153 +1,151 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState } from 'react'
 import './App.css'
-import GameCanvas from './components/GameCanvas.jsx'
-import HUDOverlay from './components/HUDOverlay.jsx'
-import UpgradeModal from './components/UpgradeModal.jsx'
-import DebriefModal from './components/DebriefModal.jsx'
-import VictoryModal from './components/VictoryModal.jsx'
+import { STORY_STAGES } from './data/storyStages.js'
+import ComicHUD from './components/ComicHUD.jsx'
+import ComicSceneCanvas from './components/ComicSceneCanvas.jsx'
+import ChoiceCards from './components/ChoiceCards.jsx'
+import OutcomeBanner from './components/OutcomeBanner.jsx'
+import ComicVictoryModal from './components/ComicVictoryModal.jsx'
 import ScienceDossierModal from './components/ScienceDossierModal.jsx'
-import VirtualJoystick from './components/VirtualJoystick.jsx'
-import sound from './game/SoundFX.js'
+import cartoonAudio from './game/CartoonAudio.js'
+import confetti from 'canvas-confetti'
 
 /**
- * Space Cadet: Sol Survivors
- * NASA Space Apps Challenge Edition — Tailored for Kids Aged 7–12
- * Inspired by CrazyGames 'Space Survivors'
+ * Save the Astronaut: Sol-1 Dilemmas
+ * NASA Space Apps Challenge Edition — Kids Aged 7–12
+ * Inspired by 'Save the Girl' choice puzzle mechanics
  */
 export default function App() {
-  const canvasRef = useRef(null)
-
-  const [telemetry, setTelemetry] = useState(null)
-  const [upgradeChoices, setUpgradeChoices] = useState(null)
-  const [gameOverData, setGameOverData] = useState(null)
+  const [currentStageIdx, setCurrentStageIdx] = useState(0)
+  const [resources, setResources] = useState({ power: 75, air: 75, shield: 75, plants: 75 })
+  const [selectedOutcome, setSelectedOutcome] = useState(null)
   const [isVictory, setIsVictory] = useState(false)
-  const [victoryScore, setVictoryScore] = useState(0)
-  const [isPaused, setIsPaused] = useState(false)
   const [isScienceOpen, setIsScienceOpen] = useState(false)
-  const [isMuted, setIsMuted] = useState(sound.isMuted())
+  const [isMuted, setIsMuted] = useState(cartoonAudio.isMuted())
 
-  // Telemetry broadcast from game loop
-  const handleTelemetryUpdate = useCallback((data) => {
-    setTelemetry(data)
-  }, [])
+  const currentStage = STORY_STAGES[currentStageIdx] || STORY_STAGES[0]
 
-  // Level Up event → Freeze action & show 3 Arcade Choice Cards
-  const handleLevelUp = useCallback((choices) => {
-    setUpgradeChoices(choices)
-  }, [])
+  // Determine current character mood
+  const currentMood = selectedOutcome
+    ? selectedOutcome.outcomeMood
+    : currentStage.characterMood
 
-  // Choice selected
-  const handleSelectUpgrade = (card) => {
-    setUpgradeChoices(null)
-    if (canvasRef.current) {
-      canvasRef.current.applyUpgrade(card)
-    }
-  }
+  // When player clicks Choice A or Choice B
+  const handleSelectChoice = (choice) => {
+    if (choice.isCorrect) {
+      cartoonAudio.playSuccess()
 
-  // Game Over event
-  const handleGameOver = useCallback((data) => {
-    setGameOverData(data)
-  }, [])
+      // Quick confetti burst
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.65 },
+        colors: ['#22c55e', '#fbbf24', '#06b6d4'],
+      })
 
-  // Victory event
-  const handleVictory = useCallback((score) => {
-    setVictoryScore(score)
-    setIsVictory(true)
-  }, [])
-
-  // Sol Advance
-  const handleSolAdvance = useCallback(() => {}, [])
-
-  // Restart game
-  const handleRestart = () => {
-    setGameOverData(null)
-    setIsVictory(false)
-    setUpgradeChoices(null)
-    setIsPaused(false)
-    if (canvasRef.current) {
-      canvasRef.current.restart()
-    }
-  }
-
-  // Toggle Pause
-  const handleTogglePause = () => {
-    if (isPaused) {
-      canvasRef.current?.resume()
-      setIsPaused(false)
+      // Update resources positively
+      setResources((prev) => ({
+        power: Math.min(100, Math.max(0, prev.power + (choice.resourceDelta.power || 0))),
+        air: Math.min(100, Math.max(0, prev.air + (choice.resourceDelta.air || 0))),
+        shield: Math.min(100, Math.max(0, prev.shield + (choice.resourceDelta.shield || 0))),
+        plants: Math.min(100, Math.max(0, prev.plants + (choice.resourceDelta.plants || 0))),
+      }))
     } else {
-      canvasRef.current?.pause()
-      setIsPaused(true)
+      cartoonAudio.playFail()
+
+      // Update resources with penalty
+      setResources((prev) => ({
+        power: Math.min(100, Math.max(0, prev.power + (choice.resourceDelta.power || 0))),
+        air: Math.min(100, Math.max(0, prev.air + (choice.resourceDelta.air || 0))),
+        shield: Math.min(100, Math.max(0, prev.shield + (choice.resourceDelta.shield || 0))),
+        plants: Math.min(100, Math.max(0, prev.plants + (choice.resourceDelta.plants || 0))),
+      }))
+    }
+
+    setSelectedOutcome(choice)
+  }
+
+  // When player clicks 'Try Again' after a fail
+  const handleTryAgain = () => {
+    setSelectedOutcome(null)
+  }
+
+  // When player clicks 'Next Stage' after success
+  const handleNextStage = () => {
+    setSelectedOutcome(null)
+
+    if (currentStageIdx + 1 >= STORY_STAGES.length) {
+      setIsVictory(true)
+    } else {
+      setCurrentStageIdx((prev) => prev + 1)
+      cartoonAudio.playSiren()
     }
   }
 
-  // Toggle Sound
+  // Restart the whole story
+  const handleRestart = () => {
+    setCurrentStageIdx(0)
+    setResources({ power: 75, air: 75, shield: 75, plants: 75 })
+    setSelectedOutcome(null)
+    setIsVictory(false)
+  }
+
+  // Audio Toggle
   const handleToggleMute = () => {
-    const muted = sound.toggleMute()
+    const muted = cartoonAudio.toggleMute()
     setIsMuted(muted)
   }
 
-  // Virtual Joystick handlers (mobile / touch)
-  const handleJoystickMove = (x, y) => {
-    canvasRef.current?.setJoystick(x, y)
-  }
-
-  const handleJoystickDash = () => {
-    canvasRef.current?.triggerDash()
-  }
+  const isLastStage = currentStageIdx + 1 >= STORY_STAGES.length
 
   return (
-    <div id="app-root" className="w-screen h-screen overflow-hidden bg-space-black relative select-none">
-      {/* ── 2D Canvas Game Engine ── */}
-      <GameCanvas
-        ref={canvasRef}
-        onLevelUp={handleLevelUp}
-        onGameOver={handleGameOver}
-        onVictory={handleVictory}
-        onTelemetryUpdate={handleTelemetryUpdate}
-        onSolAdvance={handleSolAdvance}
+    <div id="app-root" className="w-screen h-screen overflow-y-auto bg-space-black text-starfield font-body relative flex flex-col justify-between p-3 sm:p-5 select-none">
+      {/* ── Top Header HUD ── */}
+      <ComicHUD
+        currentStageIdx={currentStageIdx}
+        totalStages={STORY_STAGES.length}
+        resources={resources}
+        isMuted={isMuted}
+        onToggleMute={handleToggleMute}
+        onRestart={handleRestart}
+        onOpenScience={() => setIsScienceOpen(true)}
       />
 
-      {/* ── Arcade HUD Overlay (XP, Base Life Support, Carried Items, Controls) ── */}
-      <div className="absolute inset-0 pointer-events-none z-20">
-        <HUDOverlay
-          telemetry={telemetry}
-          isPaused={isPaused}
-          onTogglePause={handleTogglePause}
-          onToggleMute={handleToggleMute}
-          isMuted={isMuted}
-          onOpenScience={() => setIsScienceOpen(true)}
+      {/* ── Center Comic Scene Canvas & Animated Leo ── */}
+      <main className="w-full max-w-4xl mx-auto my-auto py-2 space-y-3">
+        <ComicSceneCanvas
+          stage={currentStage}
+          currentMood={currentMood}
+          outcomeText={selectedOutcome ? selectedOutcome.outcomeTitle : null}
+          isCorrect={selectedOutcome ? selectedOutcome.isCorrect : null}
         />
-      </div>
 
-      {/* ── Virtual Joystick & Boost for Tablets & Mobile ── */}
-      <VirtualJoystick
-        onMove={handleJoystickMove}
-        onDash={handleJoystickDash}
-      />
+        {/* ── Bottom Action Area: Either Choice Cards OR Outcome Result ── */}
+        {!selectedOutcome ? (
+          <ChoiceCards
+            choiceA={currentStage.choiceA}
+            choiceB={currentStage.choiceB}
+            onSelect={handleSelectChoice}
+            disabled={selectedOutcome !== null}
+          />
+        ) : (
+          <OutcomeBanner
+            outcome={selectedOutcome}
+            onTryAgain={handleTryAgain}
+            onNextStage={handleNextStage}
+            isLastStage={isLastStage}
+          />
+        )}
+      </main>
 
-      {/* ── Level-Up Arcade Choice Cards Modal ── */}
-      {upgradeChoices && (
-        <UpgradeModal
-          choices={upgradeChoices}
-          onSelect={handleSelectUpgrade}
-        />
-      )}
+      {/* ── Footer Branding & Credit ── */}
+      <footer className="w-full text-center py-1 text-xs font-mono text-starfield/40">
+        Save the Astronaut: Sol-1 Dilemmas • NASA Space Apps Challenge Edition • Built for Junior Explorers (Ages 7–12)
+      </footer>
 
-      {/* ── Educational Mission Debrief Modal (Game Over) ── */}
-      {gameOverData && (
-        <DebriefModal
-          data={gameOverData}
-          onRestart={handleRestart}
-        />
-      )}
-
-      {/* ── Victory Celebration Modal (Sol 10 Survived) ── */}
+      {/* ── Grand Victory Modal (All 5 Stages Saved) ── */}
       {isVictory && (
-        <VictoryModal
-          score={victoryScore}
-          sol={10}
-          onRestart={handleRestart}
-        />
+        <ComicVictoryModal onRestart={handleRestart} />
       )}
 
       {/* ── NASA Science Dossier Modal ── */}
