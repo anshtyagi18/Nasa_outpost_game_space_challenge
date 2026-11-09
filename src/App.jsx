@@ -1,84 +1,159 @@
-import { useState, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import './App.css'
-import CinematicViewport from './components/CinematicViewport.jsx'
-import MissionControlHud from './components/MissionControlHud.jsx'
+import GameCanvas from './components/GameCanvas.jsx'
+import HUDOverlay from './components/HUDOverlay.jsx'
+import UpgradeModal from './components/UpgradeModal.jsx'
+import DebriefModal from './components/DebriefModal.jsx'
+import VictoryModal from './components/VictoryModal.jsx'
 import ScienceDossierModal from './components/ScienceDossierModal.jsx'
-import MissionLogArchive from './components/MissionLogArchive.jsx'
-import useGameLoop from './hooks/useGameLoop.js'
+import VirtualJoystick from './components/VirtualJoystick.jsx'
+import sound from './game/SoundFX.js'
 
 /**
- * Root Application Shell for Outpost Sol-1: Mission Commander
- *
- * Cinematic 3D Edition — NASA Space Apps Challenge
- * Tailored for Explorers aged 7–12
- *
- * Visual Architecture:
- *   - Background: 3D Three.js Viewport (Mars, Outpost Modules, Lander, Storm Particles)
- *   - Foreground: Tactical Arcade UI overlay (Tinder/Reigns-style tactile decision cards)
- *   - Modals: Science Dossier (real NASA open data) & Mission Log Archive (compound costs)
+ * Space Cadet: Sol Survivors
+ * NASA Space Apps Challenge Edition — Tailored for Kids Aged 7–12
+ * Inspired by CrazyGames 'Space Survivors'
  */
 export default function App() {
-  const {
-    state,
-    startSol,
-    makeChoice,
-    nextSol,
-    resetGame,
-    loadNasaData,
-  } = useGameLoop()
+  const canvasRef = useRef(null)
 
-  const [isArchiveOpen, setIsArchiveOpen] = useState(false)
+  const [telemetry, setTelemetry] = useState(null)
+  const [upgradeChoices, setUpgradeChoices] = useState(null)
+  const [gameOverData, setGameOverData] = useState(null)
+  const [isVictory, setIsVictory] = useState(false)
+  const [victoryScore, setVictoryScore] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
   const [isScienceOpen, setIsScienceOpen] = useState(false)
+  const [isMuted, setIsMuted] = useState(sound.isMuted())
 
-  // Fetch live NASA DONKI data on mount (with automatic fallback)
-  useEffect(() => {
-    loadNasaData()
-  }, [loadNasaData])
+  // Telemetry broadcast from game loop
+  const handleTelemetryUpdate = useCallback((data) => {
+    setTelemetry(data)
+  }, [])
 
-  // Derive visual 3D simulation triggers
-  const power = state.resources.power ?? 75
-  const shields = state.resources.shields ?? 75
-  const isAlarming = power <= 25 || shields <= 25
-  const isHazard =
-    state.phase === 'event' && (state.currentEvent?.hazardLevel >= 3 || false)
-  const isLanderActive =
-    state.phase === 'choice_made' || (state.sol > 1 && state.phase === 'briefing')
+  // Level Up event → Freeze action & show 3 Arcade Choice Cards
+  const handleLevelUp = useCallback((choices) => {
+    setUpgradeChoices(choices)
+  }, [])
+
+  // Choice selected
+  const handleSelectUpgrade = (card) => {
+    setUpgradeChoices(null)
+    if (canvasRef.current) {
+      canvasRef.current.applyUpgrade(card)
+    }
+  }
+
+  // Game Over event
+  const handleGameOver = useCallback((data) => {
+    setGameOverData(data)
+  }, [])
+
+  // Victory event
+  const handleVictory = useCallback((score) => {
+    setVictoryScore(score)
+    setIsVictory(true)
+  }, [])
+
+  // Sol Advance
+  const handleSolAdvance = useCallback(() => {}, [])
+
+  // Restart game
+  const handleRestart = () => {
+    setGameOverData(null)
+    setIsVictory(false)
+    setUpgradeChoices(null)
+    setIsPaused(false)
+    if (canvasRef.current) {
+      canvasRef.current.restart()
+    }
+  }
+
+  // Toggle Pause
+  const handleTogglePause = () => {
+    if (isPaused) {
+      canvasRef.current?.resume()
+      setIsPaused(false)
+    } else {
+      canvasRef.current?.pause()
+      setIsPaused(true)
+    }
+  }
+
+  // Toggle Sound
+  const handleToggleMute = () => {
+    const muted = sound.toggleMute()
+    setIsMuted(muted)
+  }
+
+  // Virtual Joystick handlers (mobile / touch)
+  const handleJoystickMove = (x, y) => {
+    canvasRef.current?.setJoystick(x, y)
+  }
+
+  const handleJoystickDash = () => {
+    canvasRef.current?.triggerDash()
+  }
 
   return (
-    <div id="app-root" className="w-screen h-screen overflow-hidden bg-space-black text-starfield font-body relative">
-      {/* ── Layer 1: Cinematic Interactive 3D Three.js Viewport ───── */}
-      <CinematicViewport
-        isHazard={isHazard}
-        isAlarming={isAlarming}
-        isLanderActive={isLanderActive}
+    <div id="app-root" className="w-screen h-screen overflow-hidden bg-space-black relative select-none">
+      {/* ── 2D Canvas Game Engine ── */}
+      <GameCanvas
+        ref={canvasRef}
+        onLevelUp={handleLevelUp}
+        onGameOver={handleGameOver}
+        onVictory={handleVictory}
+        onTelemetryUpdate={handleTelemetryUpdate}
+        onSolAdvance={handleSolAdvance}
       />
 
-      {/* ── Layer 2: Fullscreen Artemis Arcade HUD Overlay ─────────── */}
-      <div className="absolute inset-0 z-10 p-3 sm:p-5 pointer-events-none flex flex-col justify-between overflow-hidden">
-        <MissionControlHud
-          state={state}
-          startSol={startSol}
-          makeChoice={makeChoice}
-          nextSol={nextSol}
-          resetGame={resetGame}
-          onOpenArchive={() => setIsArchiveOpen(true)}
+      {/* ── Arcade HUD Overlay (XP, Base Life Support, Carried Items, Controls) ── */}
+      <div className="absolute inset-0 pointer-events-none z-20">
+        <HUDOverlay
+          telemetry={telemetry}
+          isPaused={isPaused}
+          onTogglePause={handleTogglePause}
+          onToggleMute={handleToggleMute}
+          isMuted={isMuted}
           onOpenScience={() => setIsScienceOpen(true)}
         />
       </div>
 
-      {/* ── Layer 3: NASA Science Dossier Modal Popup ──────────────── */}
+      {/* ── Virtual Joystick & Boost for Tablets & Mobile ── */}
+      <VirtualJoystick
+        onMove={handleJoystickMove}
+        onDash={handleJoystickDash}
+      />
+
+      {/* ── Level-Up Arcade Choice Cards Modal ── */}
+      {upgradeChoices && (
+        <UpgradeModal
+          choices={upgradeChoices}
+          onSelect={handleSelectUpgrade}
+        />
+      )}
+
+      {/* ── Educational Mission Debrief Modal (Game Over) ── */}
+      {gameOverData && (
+        <DebriefModal
+          data={gameOverData}
+          onRestart={handleRestart}
+        />
+      )}
+
+      {/* ── Victory Celebration Modal (Sol 10 Survived) ── */}
+      {isVictory && (
+        <VictoryModal
+          score={victoryScore}
+          sol={10}
+          onRestart={handleRestart}
+        />
+      )}
+
+      {/* ── NASA Science Dossier Modal ── */}
       <ScienceDossierModal
         isOpen={isScienceOpen}
         onClose={() => setIsScienceOpen(false)}
-        event={state.currentEvent}
-      />
-
-      {/* ── Layer 4: Interactive Mission Log & Decision Archive ─────── */}
-      <MissionLogArchive
-        isOpen={isArchiveOpen}
-        onClose={() => setIsArchiveOpen(false)}
-        history={state.history}
-        currentSol={state.sol}
       />
     </div>
   )

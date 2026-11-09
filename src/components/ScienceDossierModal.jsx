@@ -1,12 +1,8 @@
 import { useEffect } from 'react'
-import { X, BookOpen, Atom, Rocket, Sparkles, ExternalLink } from 'lucide-react'
-import sound from '../engine/soundFx.js'
+import { X, Atom, Rocket, BookOpen } from 'lucide-react'
+import sound from '../game/SoundFX.js'
 
-/**
- * ScienceDossierModal — Clean modal popup for real NASA research
- * Keeps the main game uncluttered while giving kids & judges deep scientific grounding.
- */
-export default function ScienceDossierModal({ isOpen, onClose, event }) {
+export default function ScienceDossierModal({ isOpen, onClose }) {
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === 'Escape' && isOpen) {
@@ -18,11 +14,30 @@ export default function ScienceDossierModal({ isOpen, onClose, event }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
 
-  if (!isOpen || !event) return null
+  if (!isOpen) return null
+
+  const NASA_TOPICS = [
+    {
+      title: '🛰️ NASA DONKI & Solar Storms',
+      fact: 'The Space Weather Database Of Notifications, Knowledge, Information (DONKI) monitors Coronal Mass Ejections (CMEs) and solar flares. In deep space, solar storms travel at up to 1,500 km/s and can fry spacecraft electronics without magnetic shielding!',
+    },
+    {
+      title: '🛡️ Lunar & Martian Regolith Armor',
+      fact: 'Alien soil ("regolith") contains heavy silicon, aluminum, and iron minerals. Piling 2 meters of regolith over surface habitats protects astronauts from lethal galactic cosmic rays!',
+    },
+    {
+      title: '🌱 NASA OSDR & Microgravity Hydroponics',
+      fact: 'NASA\'s Veggie and Advanced Plant Habitat (APH) on the ISS use special red and blue LED lights to trigger plant phototropism, guiding root growth when gravity cannot.',
+    },
+    {
+      title: '💧 Water-Wall ECLSS Life Support',
+      fact: 'Water is densely packed with hydrogen atoms—the most effective element for absorbing high-speed cosmic protons. The ISS recycles 98% of all water to supply oxygen and radiation shields.',
+    },
+  ]
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-space-black/85 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-space-black/90 backdrop-blur-md animate-in fade-in select-none"
       onClick={() => {
         sound.playClick()
         onClose()
@@ -31,25 +46,21 @@ export default function ScienceDossierModal({ isOpen, onClose, event }) {
       aria-modal="true"
     >
       <div
-        className="w-full max-w-xl bg-space-deep border border-shield-cyan/50 rounded-3xl shadow-[0_0_50px_rgba(6,182,212,0.3)]
+        className="w-full max-w-2xl bg-space-deep border-2 border-shield-cyan/50 rounded-3xl shadow-[0_0_50px_rgba(6,182,212,0.3)]
                    p-6 sm:p-8 text-starfield relative overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Glow corner accent */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-shield-cyan/10 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Modal Header */}
         <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-2xl bg-shield-cyan/20 border border-shield-cyan/40 text-shield-cyan">
-              <Atom className="w-6 h-6 animate-spin-slow" />
+              <Atom className="w-6 h-6 animate-spin" />
             </div>
             <div>
               <span className="font-mono text-[10px] tracking-widest uppercase text-shield-cyan font-bold block">
                 NASA Open Data Intelligence
               </span>
               <h2 className="font-display text-lg sm:text-xl font-bold tracking-wide">
-                Mission Science Dossier
+                Space Cadet: Science Dossier
               </h2>
             </div>
           </div>
@@ -66,44 +77,25 @@ export default function ScienceDossierModal({ isOpen, onClose, event }) {
           </button>
         </div>
 
-        {/* Event Classification */}
-        <div className="p-3 rounded-2xl bg-space-black/60 border border-white/10 mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs text-sol-gold font-bold">
-              {event.title}
-            </span>
-          </div>
-          <span className="font-mono text-[11px] px-2.5 py-1 rounded-full bg-nasa-blue/40 text-shield-cyan border border-shield-cyan/30">
-            {event.sourceDataset}
-          </span>
-        </div>
-
-        {/* Real-World Engineering Explanation */}
-        <div className="space-y-4 mb-6 font-mono text-xs sm:text-sm text-starfield/90 leading-relaxed">
-          <div className="p-4 rounded-2xl bg-shield-cyan/10 border border-shield-cyan/20">
-            <h3 className="font-display text-xs text-shield-cyan uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Rocket className="w-4 h-4" />
-              The Real Spaceflight Science
-            </h3>
-            <p className="text-starfield/90">
-              {event.scienceNote}
-            </p>
-          </div>
-
-          {event.liveDataNote && (
-            <div className="p-3.5 rounded-2xl bg-sol-gold/10 border border-sol-gold/30 flex items-start gap-2.5">
-              <Sparkles className="w-4 h-4 text-sol-gold shrink-0 mt-0.5" />
-              <p className="text-xs text-sol-gold/90">
-                {event.liveDataNote}
+        {/* Real-World Science Topics */}
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+          {NASA_TOPICS.map((topic, i) => (
+            <div key={i} className="p-3.5 rounded-2xl bg-space-black/60 border border-white/5">
+              <h3 className="font-display text-xs text-shield-cyan uppercase tracking-wider mb-1 flex items-center gap-1.5 font-bold">
+                <Rocket className="w-3.5 h-3.5" />
+                {topic.title}
+              </h3>
+              <p className="font-mono text-xs text-starfield/80 leading-relaxed">
+                {topic.fact}
               </p>
             </div>
-          )}
+          ))}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-white/10">
+        <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-4">
           <span className="font-mono text-[10px] text-starfield/50">
-            Curated from NASA Open Data APIs (DONKI • InSight • OSDR)
+            Source: NASA Open Science Data Repository & Heliophysics Science Division
           </span>
           <button
             onClick={() => {
@@ -113,7 +105,7 @@ export default function ScienceDossierModal({ isOpen, onClose, event }) {
             className="px-5 py-2 rounded-xl font-display text-xs tracking-wider uppercase
                        bg-shield-cyan text-space-black font-bold hover:bg-shield-cyan/90 transition-colors cursor-pointer"
           >
-            Understood, Commander
+            Back to Mission
           </button>
         </div>
       </div>
