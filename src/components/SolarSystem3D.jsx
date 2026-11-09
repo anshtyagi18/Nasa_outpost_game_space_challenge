@@ -540,3 +540,4 @@ export default function SolarSystem3D({ environment = 'space', stageIdx = 0 }) {
     />
   )
 }
+
