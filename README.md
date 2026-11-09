@@ -186,8 +186,8 @@ nasa-outpost-game/
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/your-username/nasa-outpost-sol-1.git
-cd nasa-outpost-sol-1
+git clone https://github.com/anshtyagi18/Nasa_outpost_game_space_challenge.git
+cd Nasa_outpost_game_space_challenge
 ```
 
 ### 2. Install Dependencies
