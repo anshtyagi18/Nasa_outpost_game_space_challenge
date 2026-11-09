@@ -1,24 +1,21 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import StarfieldCanvas from './components/StarfieldCanvas.jsx'
-import MissionBanner from './components/MissionBanner.jsx'
-import OutpostCanvas from './components/OutpostCanvas.jsx'
+import CinematicViewport from './components/CinematicViewport.jsx'
 import MissionControlHud from './components/MissionControlHud.jsx'
+import ScienceDossierModal from './components/ScienceDossierModal.jsx'
 import MissionLogArchive from './components/MissionLogArchive.jsx'
 import useGameLoop from './hooks/useGameLoop.js'
 
 /**
  * Root Application Shell for Outpost Sol-1: Mission Commander
  *
- * NASA Space Apps Challenge Edition
- * Target Audience: Kids aged 7–12
+ * Cinematic 3D Edition — NASA Space Apps Challenge
+ * Tailored for Explorers aged 7–12
  *
- * Composes:
- *  1. StarfieldCanvas   — Three.js deep-space background
- *  2. MissionBanner     — Artemis-style branding & mission identity
- *  3. OutpostCanvas     — Interactive Matter.js physics surface with Lunar / Zero-G
- *  4. MissionControlHud — Real-time telemetry, DONKI event decisions, debriefs
- *  5. MissionLogArchive — Interactive flight log drawer with compound cost analytics
+ * Visual Architecture:
+ *   - Background: 3D Three.js Viewport (Mars, Outpost Modules, Lander, Storm Particles)
+ *   - Foreground: Tactical Arcade UI overlay (Tinder/Reigns-style tactile decision cards)
+ *   - Modals: Science Dossier (real NASA open data) & Mission Log Archive (compound costs)
  */
 export default function App() {
   const {
@@ -31,62 +28,52 @@ export default function App() {
   } = useGameLoop()
 
   const [isArchiveOpen, setIsArchiveOpen] = useState(false)
+  const [isScienceOpen, setIsScienceOpen] = useState(false)
 
-  // Attempt live NASA DONKI data enrichment on mount (falls back seamlessly offline)
+  // Fetch live NASA DONKI data on mount (with automatic fallback)
   useEffect(() => {
     loadNasaData()
   }, [loadNasaData])
 
+  // Derive visual 3D simulation triggers
+  const power = state.resources.power ?? 75
+  const shields = state.resources.shields ?? 75
+  const isAlarming = power <= 25 || shields <= 25
+  const isHazard =
+    state.phase === 'event' && (state.currentEvent?.hazardLevel >= 3 || false)
+  const isLanderActive =
+    state.phase === 'choice_made' || (state.sol > 1 && state.phase === 'briefing')
+
   return (
-    <div id="app-root" className="relative min-h-screen bg-space-black text-starfield font-body selection:bg-nasa-blue selection:text-white">
-      {/* Three.js Deep Space Parallax Canvas */}
-      <StarfieldCanvas />
+    <div id="app-root" className="w-screen h-screen overflow-hidden bg-space-black text-starfield font-body relative">
+      {/* ── Layer 1: Cinematic Interactive 3D Three.js Viewport ───── */}
+      <CinematicViewport
+        isHazard={isHazard}
+        isAlarming={isAlarming}
+        isLanderActive={isLanderActive}
+      />
 
-      {/* Main Mission Layer */}
-      <div className="relative z-10 flex flex-col min-h-screen">
-        <header>
-          <MissionBanner />
-        </header>
-
-        <main className="flex-1 max-w-5xl w-full mx-auto px-4 pb-12 space-y-6">
-          {/* Interactive Matter.js Surface Physics Canvas */}
-          <section aria-label="Outpost Surface Physical Simulator">
-            <div className="flex items-center justify-between mb-2 px-1">
-              <span className="font-mono text-xs uppercase tracking-wider text-starfield/60">
-                Surface Sector 01: Physical Telemetry
-              </span>
-              <span className="font-mono text-[11px] text-shield-cyan/80">
-                Interactive Multi-Module Array
-              </span>
-            </div>
-            <OutpostCanvas resources={state.resources} />
-          </section>
-
-          {/* Artemis Mission Control HUD */}
-          <section aria-label="Mission Operations Deck">
-            <MissionControlHud
-              state={state}
-              startSol={startSol}
-              makeChoice={makeChoice}
-              nextSol={nextSol}
-              resetGame={resetGame}
-              onOpenArchive={() => setIsArchiveOpen(true)}
-            />
-          </section>
-        </main>
-
-        {/* Mission Footer */}
-        <footer className="relative z-10 border-t border-nasa-blue/20 bg-space-deep/80 backdrop-blur-md py-4 px-6 text-center text-xs font-mono text-starfield/50">
-          <p>
-            Outpost Sol-1: Mission Commander • Built for the NASA Space Apps Challenge
-          </p>
-          <p className="text-[10px] text-starfield/40 mt-1">
-            Data sourced from NASA Open APIs: DONKI Space Weather, Mars InSight, Curiosity & OSDR
-          </p>
-        </footer>
+      {/* ── Layer 2: Fullscreen Artemis Arcade HUD Overlay ─────────── */}
+      <div className="absolute inset-0 z-10 p-3 sm:p-5 pointer-events-none flex flex-col justify-between overflow-hidden">
+        <MissionControlHud
+          state={state}
+          startSol={startSol}
+          makeChoice={makeChoice}
+          nextSol={nextSol}
+          resetGame={resetGame}
+          onOpenArchive={() => setIsArchiveOpen(true)}
+          onOpenScience={() => setIsScienceOpen(true)}
+        />
       </div>
 
-      {/* Interactive Decision Archive Drawer */}
+      {/* ── Layer 3: NASA Science Dossier Modal Popup ──────────────── */}
+      <ScienceDossierModal
+        isOpen={isScienceOpen}
+        onClose={() => setIsScienceOpen(false)}
+        event={state.currentEvent}
+      />
+
+      {/* ── Layer 4: Interactive Mission Log & Decision Archive ─────── */}
       <MissionLogArchive
         isOpen={isArchiveOpen}
         onClose={() => setIsArchiveOpen(false)}
