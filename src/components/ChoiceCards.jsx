@@ -4,6 +4,7 @@ import cartoonAudio from '../game/CartoonAudio.js'
 /**
  * ChoiceCards — Exactly 2 Big Glowing Arcade Choice Cards
  * Directly inspired by 'Save the Girl' mechanics for kids aged 7–12.
+ * Stretches cleanly across full width with balanced grid columns and arcade glow.
  */
 export default function ChoiceCards({ choiceA, choiceB, onSelect, disabled }) {
   if (!choiceA || !choiceB) return null
@@ -11,7 +12,7 @@ export default function ChoiceCards({ choiceA, choiceB, onSelect, disabled }) {
   const cards = [choiceA, choiceB]
 
   return (
-    <div className="w-full max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 select-none">
+    <div className="w-full max-w-5xl lg:max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 select-none">
       {cards.map((choice, idx) => {
         const isFirst = idx === 0
         const cardBorder = isFirst
@@ -22,8 +23,8 @@ export default function ChoiceCards({ choiceA, choiceB, onSelect, disabled }) {
           <motion.button
             key={choice.id}
             disabled={disabled}
-            whileHover={disabled ? {} : { scale: 1.05, y: -6 }}
-            whileTap={disabled ? {} : { scale: 0.95 }}
+            whileHover={disabled ? {} : { scale: 1.03, y: -4 }}
+            whileTap={disabled ? {} : { scale: 0.96 }}
             onMouseEnter={() => {
               if (!disabled) cartoonAudio.playPop()
             }}
@@ -33,8 +34,8 @@ export default function ChoiceCards({ choiceA, choiceB, onSelect, disabled }) {
                 onSelect(choice)
               }
             }}
-            className={`p-5 sm:p-6 rounded-3xl bg-space-deep/95 border-4 ${cardBorder}
-                       flex flex-col items-center text-center transition-all duration-200
+            className={`p-5 sm:p-7 rounded-3xl bg-space-deep/95 border-4 ${cardBorder}
+                       flex flex-col items-center justify-between text-center transition-all duration-200
                        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-95 group'}`}
           >
             {/* Big 3D / Animated Emoji Icon */}
@@ -47,17 +48,17 @@ export default function ChoiceCards({ choiceA, choiceB, onSelect, disabled }) {
             </motion.div>
 
             {/* Title */}
-            <h3 className="font-display text-lg sm:text-xl font-black text-starfield group-hover:text-glow tracking-wider mb-1">
+            <h3 className="font-display text-lg sm:text-2xl font-black text-starfield group-hover:text-glow tracking-wider mb-1.5">
               {choice.title}
             </h3>
 
             {/* Subtitle / Action explanation */}
-            <p className="font-mono text-xs text-starfield/70 leading-relaxed max-w-xs">
+            <p className="font-mono text-xs sm:text-sm text-starfield/70 leading-relaxed max-w-sm">
               {choice.subtitle}
             </p>
 
             {/* Bottom action hint */}
-            <div className="mt-3 px-4 py-1 rounded-full bg-white/10 font-mono text-[10px] uppercase tracking-widest font-bold text-starfield/60 group-hover:text-starfield">
+            <div className="mt-4 px-5 py-1.5 rounded-full bg-white/10 font-mono text-[10px] sm:text-xs uppercase tracking-widest font-bold text-starfield/70 group-hover:text-starfield group-hover:bg-white/20 transition-all">
               TAP TO USE THIS! 👉
             </div>
           </motion.button>

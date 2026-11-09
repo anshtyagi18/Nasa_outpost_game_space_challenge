@@ -7,13 +7,14 @@ import ChoiceCards from './components/ChoiceCards.jsx'
 import OutcomeBanner from './components/OutcomeBanner.jsx'
 import ComicVictoryModal from './components/ComicVictoryModal.jsx'
 import ScienceDossierModal from './components/ScienceDossierModal.jsx'
+import SolarSystem3D from './components/SolarSystem3D.jsx'
 import cartoonAudio from './game/CartoonAudio.js'
 import confetti from 'canvas-confetti'
 
 /**
  * Save the Astronaut: Sol-1 Dilemmas
  * NASA Space Apps Challenge Edition — Kids Aged 7–12
- * Inspired by 'Save the Girl' choice puzzle mechanics
+ * Inspired by 'Save the Girl' choice puzzle mechanics with 3D Solar System background
  */
 export default function App() {
   const [currentStageIdx, setCurrentStageIdx] = useState(0)
@@ -99,7 +100,16 @@ export default function App() {
   const isLastStage = currentStageIdx + 1 >= STORY_STAGES.length
 
   return (
-    <div id="app-root" className="w-screen h-screen overflow-y-auto bg-space-black text-starfield font-body relative flex flex-col justify-between p-3 sm:p-5 select-none">
+    <div
+      id="app-root"
+      className="w-full min-h-screen bg-space-black text-starfield font-body relative flex flex-col items-center justify-between p-3 sm:p-5 sm:px-8 select-none overflow-x-hidden"
+    >
+      {/* ── 3D Real Planets & Animated Solar System Background ── */}
+      <SolarSystem3D
+        environment={currentStage.environment}
+        stageIdx={currentStageIdx}
+      />
+
       {/* ── Top Header HUD ── */}
       <ComicHUD
         currentStageIdx={currentStageIdx}
@@ -112,7 +122,7 @@ export default function App() {
       />
 
       {/* ── Center Comic Scene Canvas & Animated Leo ── */}
-      <main className="w-full max-w-4xl mx-auto my-auto py-2 space-y-3">
+      <main className="w-full max-w-5xl lg:max-w-6xl mx-auto flex-1 flex flex-col justify-center py-2 space-y-3 sm:space-y-4 relative z-10">
         <ComicSceneCanvas
           stage={currentStage}
           currentMood={currentMood}
@@ -139,7 +149,7 @@ export default function App() {
       </main>
 
       {/* ── Footer Branding & Credit ── */}
-      <footer className="w-full text-center py-1 text-xs font-mono text-starfield/40">
+      <footer className="w-full max-w-5xl lg:max-w-6xl mx-auto text-center py-2 text-xs font-mono text-starfield/50 relative z-10">
         Save the Astronaut: Sol-1 Dilemmas • NASA Space Apps Challenge Edition • Built for Junior Explorers (Ages 7–12)
       </footer>
 

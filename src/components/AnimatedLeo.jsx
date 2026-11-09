@@ -241,3 +241,4 @@ export default function AnimatedLeo({ mood = 'happy', className = '' }) {
     </div>
   )
 }
+

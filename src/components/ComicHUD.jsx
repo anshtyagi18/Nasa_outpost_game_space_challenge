@@ -18,7 +18,7 @@ export default function ComicHUD({
   ]
 
   return (
-    <header className="w-full max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-2.5 rounded-2xl bg-space-deep/90 backdrop-blur-xl border-2 border-slate-700 shadow-xl select-none">
+    <header className="w-full max-w-5xl lg:max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-2.5 rounded-2xl bg-space-deep/90 backdrop-blur-xl border-2 border-slate-700 shadow-xl select-none relative z-10">
       {/* ── Left: Branding & Stage Bubbles ── */}
       <div className="flex items-center gap-3">
         <div>
@@ -39,9 +39,9 @@ export default function ComicHUD({
             return (
               <div
                 key={i}
-                className={`w-6 h-6 rounded-full flex items-center justify-center font-mono text-[10px] font-bold border ${
+                className={`w-6 h-6 rounded-full flex items-center justify-center font-mono text-[10px] font-bold border transition-all duration-300 ${
                   isCurrent
-                    ? 'bg-sol-gold text-space-black border-sol-gold shadow-[0_0_10px_rgba(251,191,36,0.6)] animate-pulse'
+                    ? 'bg-sol-gold text-space-black border-sol-gold shadow-[0_0_10px_rgba(251,191,36,0.6)] scale-110'
                     : isDone
                     ? 'bg-life-green text-space-black border-life-green'
                     : 'bg-space-black/60 text-starfield/40 border-white/10'
@@ -80,7 +80,7 @@ export default function ComicHUD({
         {/* Science Dossier Button */}
         <button
           onClick={onOpenScience}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl font-mono text-xs bg-space-black/60 border border-shield-cyan/40 text-shield-cyan hover:border-shield-cyan transition-colors cursor-pointer"
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl font-mono text-xs bg-space-black/60 border border-shield-cyan/40 text-shield-cyan hover:border-shield-cyan hover:bg-shield-cyan/10 transition-colors cursor-pointer"
           title="Open NASA Science Facts"
         >
           <BookOpen className="w-3.5 h-3.5" />
@@ -90,7 +90,7 @@ export default function ComicHUD({
         {/* Audio Mute */}
         <button
           onClick={onToggleMute}
-          className="p-1.5 rounded-xl bg-space-black/60 border border-white/10 text-starfield/70 hover:text-starfield transition-colors cursor-pointer"
+          className="p-1.5 rounded-xl bg-space-black/60 border border-white/10 text-starfield/70 hover:text-starfield hover:bg-white/5 transition-colors cursor-pointer"
           aria-label={isMuted ? 'Unmute' : 'Mute'}
         >
           {isMuted ? <VolumeX className="w-4 h-4 text-alert-red" /> : <Volume2 className="w-4 h-4 text-life-green" />}
@@ -99,7 +99,7 @@ export default function ComicHUD({
         {/* Restart Story */}
         <button
           onClick={onRestart}
-          className="p-1.5 rounded-xl bg-space-black/60 border border-white/10 text-starfield/70 hover:text-starfield transition-colors cursor-pointer"
+          className="p-1.5 rounded-xl bg-space-black/60 border border-white/10 text-starfield/70 hover:text-starfield hover:bg-white/5 transition-colors cursor-pointer"
           title="Restart from Stage 1"
         >
           <RotateCcw className="w-4 h-4" />
