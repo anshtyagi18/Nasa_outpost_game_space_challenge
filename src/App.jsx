@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Volume2, VolumeX, Radio, Film } from 'lucide-react';
+import { Volume2, VolumeX, Radio, Film, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import { selectScenarios, BASE_TYPES } from './data/missionScenarios';
@@ -325,6 +325,15 @@ export default function App() {
         isOpen={videoModalOpen}
         onClose={() => setVideoModalOpen(false)}
       />
+
+      {/* AI Watermark in Left Corner */}
+      <div className="fixed bottom-3 left-3 z-30 print-hide pointer-events-auto">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/85 backdrop-blur-md border border-cyan-500/40 shadow-lg text-[10px] font-orbitron font-bold text-slate-300 hover:text-cyan-300 hover:border-cyan-400 transition-all cursor-default select-none group">
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400 group-hover:rotate-12 transition-transform" />
+          <span>POWERED BY AI</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
+        </div>
+      </div>
     </div>
   );
 }
