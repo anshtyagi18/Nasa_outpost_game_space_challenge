@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Volume2, VolumeX, Radio } from 'lucide-react';
+import { Volume2, VolumeX, Radio, Film } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import { selectScenarios, BASE_TYPES } from './data/missionScenarios';
@@ -10,6 +10,7 @@ import HabitatStage from './components/HabitatStage';
 import MeterBar from './components/MeterBar';
 import KidFactPopup from './components/KidFactPopup';
 import ScienceModal from './components/ScienceModal';
+import VideoModal from './components/VideoModal';
 import StartScreen from './components/StartScreen';
 import FailureScreen from './components/FailureScreen';
 import VictoryScreen from './components/VictoryScreen';
@@ -37,6 +38,7 @@ export default function App() {
   const [currentFact, setCurrentFact] = useState('');
   const [isMuted, setIsMutedState] = useState(false);
   const [scienceModalOpen, setScienceModalOpen] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [choiceHistory, setChoiceHistory] = useState([]);
   const [failureReason, setFailureReason] = useState('');
 
@@ -150,10 +152,21 @@ export default function App() {
           <span className="font-orbitron text-slate-500 text-xs hidden sm:block">Survival on Sol-7</span>
         </div>
         <div className="flex items-center gap-2">
+          {/* Demo Video button */}
+          <motion.button
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-950/60 border border-rose-500/40 text-rose-300 hover:bg-rose-900/80 transition-colors text-xs font-bold font-orbitron cursor-pointer"
+            onClick={() => { playClick(); setVideoModalOpen(true); }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Film className="w-3.5 h-3.5 text-rose-400" />
+            <span className="hidden sm:block">DEMO VIDEO</span>
+          </motion.button>
+
           {/* Telemetry button */}
           {phase !== PHASE.START && (
             <motion.button
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-900/50 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-900/80 transition-colors text-xs font-bold font-orbitron"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-900/50 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-900/80 transition-colors text-xs font-bold font-orbitron cursor-pointer"
               onClick={() => { playClick(); setScienceModalOpen(true); }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -168,10 +181,11 @@ export default function App() {
               />
             </motion.button>
           )}
+
           {/* Mute button */}
           <button
             onClick={handleMuteToggle}
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
           >
             {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
@@ -183,7 +197,7 @@ export default function App() {
         <AnimatePresence mode="wait">
           {phase === PHASE.START && (
             <motion.div key="start" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <StartScreen onStart={handleStart} />
+              <StartScreen onStart={handleStart} onOpenDemo={() => setVideoModalOpen(true)} />
             </motion.div>
           )}
 
@@ -245,12 +259,12 @@ export default function App() {
                   <div>
                     <h2 className="font-orbitron font-black text-white text-base">{currentScenario.title}</h2>
                     <a href={currentScenario.scienceLink} target="_blank" rel="noopener noreferrer"
-                      className="text-xs text-cyan-500 hover:text-cyan-300 transition-colors">
+                      className="text-xs text-cyan-400 hover:text-cyan-200 transition-colors font-semibold">
                       📡 {currentScenario.scienceContext} ↗
                     </a>
                   </div>
                 </div>
-                <p className="text-slate-300 text-sm leading-relaxed">{currentScenario.description}</p>
+                <p className="text-slate-200 text-sm leading-relaxed">{currentScenario.description}</p>
               </div>
 
               {/* Choice Cards */}
@@ -305,6 +319,12 @@ export default function App() {
         isOpen={scienceModalOpen}
         onClose={() => setScienceModalOpen(false)}
       />
+
+      {/* Video Modal */}
+      <VideoModal
+        isOpen={videoModalOpen}
+        onClose={() => setVideoModalOpen(false)}
+      />
     </div>
   );
 }
@@ -327,12 +347,12 @@ function ChoiceCard({ choice, onHover, onSelect, disabled }) {
         <span className="text-3xl">{choice.emoji}</span>
         <div>
           <h3 className="font-orbitron font-black text-white text-sm">{choice.title}</h3>
-          <p className="text-xs text-slate-400">{choice.subtext}</p>
+          <p className="text-xs text-slate-300 font-medium">{choice.subtext}</p>
         </div>
       </div>
 
       {/* Description */}
-      <p className="text-slate-300 text-xs mb-3 leading-relaxed">{choice.description}</p>
+      <p className="text-slate-200 text-xs mb-3 leading-relaxed">{choice.description}</p>
 
       {/* Effect badges */}
       <div className="flex flex-wrap gap-1.5">

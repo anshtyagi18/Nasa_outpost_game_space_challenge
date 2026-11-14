@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Film } from 'lucide-react';
 import { BASE_TYPES } from '../data/missionScenarios';
 import { playClick } from '../utils/sound';
 
-export default function StartScreen({ onStart }) {
+export default function StartScreen({ onStart, onOpenDemo }) {
   const [selected, setSelected] = useState('mars');
 
   return (
@@ -26,7 +27,7 @@ export default function StartScreen({ onStart }) {
           ARES KIDS
         </h1>
         <p className="font-orbitron text-cyan-400 text-lg mt-1 font-bold">Survival on Sol-7</p>
-        <p className="text-slate-400 text-sm mt-2 max-w-xs mx-auto">
+        <p className="text-slate-300 text-sm mt-2 max-w-xs mx-auto font-medium">
           A NASA Space Apps Challenge educational game for future astronauts ages 7–12 🌟
         </p>
       </motion.div>
@@ -114,43 +115,60 @@ export default function StartScreen({ onStart }) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.4, duration: 0.5 }}
       >
-        <p className="text-center text-slate-400 text-sm mb-3 font-bold">Choose Your Mission Base:</p>
+        <p className="text-center text-slate-300 text-sm mb-3 font-bold font-orbitron">Choose Your Mission Base:</p>
         <div className="grid grid-cols-2 gap-3">
           {Object.values(BASE_TYPES).map(base => (
             <motion.button
               key={base.id}
               onClick={() => { playClick(); setSelected(base.id); }}
-              className={`p-3 rounded-2xl border-2 text-left transition-all ${
+              className={`p-3 rounded-2xl border-2 text-left transition-all cursor-pointer ${
                 selected === base.id
-                  ? 'border-cyan-400 bg-cyan-900/30'
-                  : 'border-slate-700 bg-slate-800/60 hover:border-slate-500'
+                  ? 'border-cyan-400 bg-cyan-900/40 shadow-lg shadow-cyan-500/20'
+                  : 'border-slate-700 bg-slate-800/80 hover:border-slate-500'
               }`}
               whileTap={{ scale: 0.97 }}
             >
               <div className="text-3xl mb-1">{base.emoji}</div>
               <div className="font-bold text-white text-xs font-orbitron leading-tight">{base.name}</div>
-              <div className="text-slate-400 text-xs mt-1">{base.subtitle}</div>
+              <div className="text-slate-300 text-xs mt-1 font-medium">{base.subtitle}</div>
             </motion.button>
           ))}
         </div>
       </motion.div>
 
-      {/* Launch button */}
-      <motion.button
-        onClick={() => onStart(selected)}
-        className="px-10 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-lg rounded-2xl shadow-lg shadow-cyan-500/30 font-orbitron transition-all glow-blue"
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.97 }}
-      >
-        🚀 LAUNCH MISSION!
-      </motion.button>
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row items-center gap-3">
+        <motion.button
+          onClick={() => onStart(selected)}
+          className="px-8 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-base md:text-lg rounded-2xl shadow-lg shadow-cyan-500/30 font-orbitron transition-all glow-blue cursor-pointer"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.97 }}
+        >
+          🚀 LAUNCH MISSION!
+        </motion.button>
+
+        {onOpenDemo && (
+          <motion.button
+            onClick={() => { playClick(); onOpenDemo(); }}
+            className="flex items-center gap-2 px-6 py-3.5 bg-slate-800 hover:bg-slate-700 border border-rose-500/50 text-rose-300 hover:text-white font-bold text-sm rounded-2xl font-orbitron shadow-md transition-all cursor-pointer"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <Film className="w-4 h-4 text-rose-400" />
+            <span>WATCH DEMO VIDEO</span>
+          </motion.button>
+        )}
+      </div>
 
       {/* NASA Badge */}
       <motion.p
-        className="text-xs text-slate-500 text-center"
+        className="text-xs text-slate-400 text-center font-medium"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}

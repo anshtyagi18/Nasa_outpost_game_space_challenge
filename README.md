@@ -6,13 +6,13 @@
 
 [![NASA Space Apps](https://img.shields.io/badge/NASA%20Space%20Apps-Challenge%202024-0b3d91?style=for-the-badge&logo=nasa&logoColor=white)](https://www.spaceappschallenge.org/)
 [![Target Audience](https://img.shields.io/badge/Audience-Kids%20Ages%207--12-fc3d21?style=for-the-badge)](https://nasa.gov)
-[![Demo Video](https://img.shields.io/badge/Watch-Demo%20Video-e11d48?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/anshtyagi18/Nasa_outpost_game_space_challenge/blob/main/demo/ares-kids-demo.mp4)
+[![Stream Video](https://img.shields.io/badge/Stream%20Video-Direct%20in%20Browser-e11d48?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/anshtyagi18/Nasa_outpost_game_space_challenge/blob/main/demo/ares-kids-demo.mp4)
 [![Vite + React](https://img.shields.io/badge/React%2019-Vite%208-06b6d4?style=for-the-badge&logo=react)](https://react.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-38bdf8?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com)
 
 **"Guide Commander Maya, rover bot SPARK-E, and Sprout the radish plant through 7 unpredictable Sols on Mars or the Moon using real NASA aerospace engineering and space weather science!"**
 
-[🎬 Watch Demo Video](#-gameplay-demo-video) • [🎮 Game Features](#-core-game-features) • [🛰️ Real NASA Science](#-real-nasa-apis--datasets) • [🖨️ Printable Diploma](#-1-page-printable-mission-diploma) • [🚀 Quick Start](#-quick-start)
+[🎬 Stream Demo Video](#-gameplay-demo-video) • [🎮 Game Features](#-core-game-features) • [🛰️ Real NASA Science](#-real-nasa-apis--datasets) • [🖨️ Printable Diploma](#-1-page-printable-mission-diploma) • [🚀 Quick Start](#-quick-start)
 
 </div>
 
@@ -20,23 +20,22 @@
 
 ## 🎬 Gameplay Demo Video
 
-Watch the full interactive walkthrough of **ARES KIDS: Survival on Sol-7** in action, featuring the character stage, choice dilemma trade-offs, live NASA telemetry drawer, and the printable mission certificate:
+Watch the full interactive walkthrough of **ARES KIDS: Survival on Sol-7** in action, featuring the character stage, choice dilemma trade-offs, live NASA telemetry drawer, and the printable mission certificate.
 
-https://github.com/user-attachments/assets/demo-video-placeholder
+### 🌐 Direct Browser Streaming Links (No Download Required):
 
-> 📹 **Direct GitHub Video Links:**
-> - 📺 **[Watch on GitHub Web Player](https://github.com/anshtyagi18/Nasa_outpost_game_space_challenge/blob/main/demo/ares-kids-demo.mp4)**
-> - 📥 **[Download Raw Video File (MP4)](https://raw.githubusercontent.com/anshtyagi18/Nasa_outpost_game_space_challenge/main/demo/ares-kids-demo.mp4)**
-
-<div align="center">
-  <video src="https://raw.githubusercontent.com/anshtyagi18/Nasa_outpost_game_space_challenge/main/demo/ares-kids-demo.mp4" controls="controls" width="100%" style="max-height: 480px; border-radius: 12px; border: 2px solid #38bdf8;"></video>
-</div>
+- 📺 **[▶️ Open Video Directly in GitHub Player](https://github.com/anshtyagi18/Nasa_outpost_game_space_challenge/blob/main/demo/ares-kids-demo.mp4)** *(Plays natively right inside your browser window)*
+- 🌐 **[▶️ Stream Raw Video in Browser Player](https://anshtyagi18.github.io/Nasa_outpost_game_space_challenge/ares-kids-demo.mp4)** *(Opens full-screen HTML5 video player in your browser tab)*
 
 ---
 
 ## 🎮 Core Game Features
 
-### 1. 7-Sol Dynamic Story & Trade-off Engine
+### 1. In-App Video Walkthrough Modal
+- Added an interactive **"DEMO VIDEO"** button directly inside the game header and start screen.
+- Anyone testing the app can watch the high-definition 1080p demo walkthrough inside an integrated modal window with zero external downloads.
+
+### 2. 7-Sol Dynamic Story & Trade-off Engine
 - Every playthrough randomly selects **7 unique scenarios** out of 10 rich NASA-backed dilemmas.
 - **No Free Choices!** Kids learn real mission planning trade-offs:
   - Diverting power to shields drains life support lamps.
@@ -44,13 +43,13 @@ https://github.com/user-attachments/assets/demo-video-placeholder
   - Hovering or touching any choice displays real-time **pulsing preview arrows** (`▲+25`, `▼-15`) on the top progress bars.
 - Plain-language **Kid Science Pop-up Facts** after every decision (explaining *Sol*, *mSv*, *CME*, *Whipple Shielding*, and *Hydroponics* in 1 punchy sentence).
 
-### 2. Animated Cartoon Habitat Stage (`HabitatStage.jsx`)
+### 3. Animated Cartoon Habitat Stage (`HabitatStage.jsx`)
 - **Commander Maya**: Shivers with animated frost particles when Power drops below 35%.
 - **SPARK-E (Rover Bot)**: Spins with red siren lights when a Solar Storm hits.
 - **Sprout (Hydroponic Radish Plant)**: Droops and turns yellow when life support drops below 35%.
 - Dynamic sky and atmospheric changes for **Mars Jezero Crater Outpost** vs. **Moon Artemis Base Camp**.
 
-### 3. Procedural Web Audio Synthesizer (`sound.js`)
+### 4. Procedural Web Audio Synthesizer (`sound.js`)
 - Zero external audio libraries — procedural sound synthesis built with the **Web Audio API**:
   - `playClick()`: Playful pop for button taps.
   - `playAlarm()`: Multi-tone sci-fi siren for incoming DONKI solar flares.
@@ -108,9 +107,3 @@ npm run dev
 ```
 
 Open your browser at `http://localhost:5173/` and blast off! 🌟
-
----
-
-## 👨‍🚀 Built For
-**NASA Space Apps Challenge 2024**  
-*Empowering the next generation of space explorers, scientists, and planetary engineers.*
