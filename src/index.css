@@ -1,86 +1,288 @@
-@import 'tailwindcss';
-
-/*
- * Outpost Sol-1: Mission Commander
- * Global design tokens and base styles
- */
+@import "tailwindcss";
 
 @theme {
-  --color-space-black: #0a0e17;
-  --color-space-deep: #111827;
-  --color-space-blue: #1e3a5f;
-  --color-nasa-blue: #0b3d91;
-  --color-nasa-red: #fc3d21;
-  --color-mars-orange: #e07a3a;
-  --color-mars-dust: #c4956a;
-  --color-sol-gold: #fbbf24;
-  --color-life-green: #22c55e;
-  --color-alert-red: #ef4444;
-  --color-shield-cyan: #06b6d4;
-  --color-hull-gray: #6b7280;
-  --color-starfield: #f0f9ff;
-
-  --font-family-display: 'Orbitron', ui-sans-serif, system-ui, sans-serif;
-  --font-family-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-family-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-orbitron: 'Orbitron', monospace;
+  --font-nunito: 'Nunito', sans-serif;
+  
+  --color-space-900: #020617;
+  --color-space-800: #0f172a;
+  --color-space-700: #1e293b;
+  --color-space-600: #334155;
+  
+  --color-solar-400: #fb923c;
+  --color-solar-500: #f97316;
+  --color-solar-600: #ea580c;
+  
+  --color-plasma-400: #c084fc;
+  --color-plasma-500: #a855f7;
+  --color-plasma-600: #9333ea;
+  
+  --color-mars-400: #f87171;
+  --color-mars-500: #ef4444;
+  --color-mars-600: #dc2626;
+  
+  --color-neon-green: #4ade80;
+  --color-neon-blue: #38bdf8;
+  --color-neon-yellow: #fde047;
+  --color-neon-red: #f87171;
+  
+  --animate-pulse-fast: pulse-fast 0.8s ease-in-out infinite;
+  --animate-flicker: flicker 1.5s linear infinite;
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-spin-slow: spin-slow 8s linear infinite;
+  --animate-solar-wave: solar-wave 2s ease-in-out infinite;
+  --animate-bounce-slow: bounce-slow 2s ease-in-out infinite;
 }
 
-/* ── Base resets ─────────────────────────────────────────── */
+@keyframes pulse-fast {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
 
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  10% { opacity: 0.8; }
+  20% { opacity: 1; }
+  30% { opacity: 0.6; }
+  40% { opacity: 1; }
+  60% { opacity: 0.9; }
+  80% { opacity: 0.7; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes solar-wave {
+  0%, 100% { transform: scaleX(1) scaleY(1); opacity: 0.6; }
+  50% { transform: scaleX(1.1) scaleY(1.05); opacity: 1; }
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+* {
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
 body {
-  font-family: var(--font-family-body);
-  background-color: var(--color-space-black);
-  color: var(--color-starfield);
-  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  background: #020617;
+  font-family: 'Nunito', sans-serif;
   overflow-x: hidden;
+  color: white;
 }
-
-/* ── Utility classes ─────────────────────────────────────── */
-
-.font-display {
-  font-family: var(--font-family-display);
-}
-
-.font-mono {
-  font-family: var(--font-family-mono);
-}
-
-.text-glow {
-  text-shadow: 0 0 8px currentColor, 0 0 24px currentColor;
-}
-
-/* ── Scrollbar styling ───────────────────────────────────── */
 
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-space-deep);
+  background: #0f172a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-nasa-blue);
+  background: #334155;
   border-radius: 3px;
 }
 
-/* ── Selection ───────────────────────────────────────────── */
+.font-orbitron {
+  font-family: 'Orbitron', monospace;
+}
 
-::selection {
-  background-color: var(--color-nasa-blue);
-  color: var(--color-starfield);
+.font-nunito {
+  font-family: 'Nunito', sans-serif;
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, #38bdf8, #a855f7, #38bdf8);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.5), 0 0 40px rgba(56, 189, 248, 0.2);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.5), 0 0 40px rgba(74, 222, 128, 0.2);
+}
+
+.glow-red {
+  box-shadow: 0 0 20px rgba(248, 113, 113, 0.5), 0 0 40px rgba(248, 113, 113, 0.2);
+}
+
+.glow-orange {
+  box-shadow: 0 0 20px rgba(251, 146, 60, 0.5), 0 0 40px rgba(251, 146, 60, 0.2);
+}
+
+.glow-purple {
+  box-shadow: 0 0 20px rgba(192, 132, 252, 0.5), 0 0 40px rgba(192, 132, 252, 0.2);
+}
+
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.choice-preview-up {
+  animation: bounce-slow 1s ease-in-out infinite;
+  color: #4ade80;
+}
+
+.choice-preview-down {
+  animation: bounce-slow 1s ease-in-out infinite reverse;
+  color: #f87171;
+}
+
+.scanline {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+}
+
+.solar-storm-bg {
+  background: radial-gradient(ellipse at top, rgba(220, 38, 38, 0.3) 0%, transparent 70%);
+  animation: solar-wave 2s ease-in-out infinite;
+}
+
+.habitat-lights-low {
+  filter: brightness(0.4) sepia(0.3);
+  animation: flicker 1.5s linear infinite;
+}
+
+.plants-wilting {
+  filter: saturate(0.3) brightness(0.7);
+}
+
+/* ──────────────── BULLETPROOF SINGLE-PAGE PRINT STYLING ──────────────── */
+@media print {
+  @page {
+    size: landscape;
+    margin: 5mm;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide entire page tree */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Make ONLY the certificate and its children visible */
+  #printable-certificate,
+  #printable-certificate * {
+    visibility: visible !important;
+  }
+
+  /* Position certificate as the solitary full-page element */
+  #printable-certificate {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    height: 98vh !important;
+    max-height: 98vh !important;
+    margin: 0 !important;
+    padding: 12px 20px !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    border: 5px double #92400e !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: avoid !important;
+    break-before: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* High contrast dark colors for every text element in print */
+  #printable-certificate h2,
+  #printable-certificate h3,
+  #printable-certificate .cert-title {
+    color: #0f172a !important;
+    font-weight: 900 !important;
+  }
+
+  #printable-certificate .cert-gold {
+    color: #92400e !important;
+    font-weight: 800 !important;
+  }
+
+  #printable-certificate .cert-recipient {
+    color: #1e3a8a !important;
+    font-weight: 900 !important;
+  }
+
+  #printable-certificate .cert-dark-text {
+    color: #1e293b !important;
+    font-weight: 700 !important;
+  }
+
+  #printable-certificate .cert-muted {
+    color: #334155 !important;
+    font-weight: 600 !important;
+  }
+
+  #printable-certificate .cert-box {
+    background: #f8fafc !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #0f172a !important;
+  }
+
+  #printable-certificate .cert-stat-val {
+    color: #0f172a !important;
+    font-weight: 900 !important;
+  }
 }

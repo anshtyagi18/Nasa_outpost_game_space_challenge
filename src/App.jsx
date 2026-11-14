@@ -1,225 +1,390 @@
-import { useState, useEffect } from 'react'
-import './App.css'
-import { STORY_STAGES } from './data/storyStages.js'
-import ComicHUD from './components/ComicHUD.jsx'
-import ComicSceneCanvas from './components/ComicSceneCanvas.jsx'
-import ChoiceCards from './components/ChoiceCards.jsx'
-import OutcomeBanner from './components/OutcomeBanner.jsx'
-import ComicVictoryModal from './components/ComicVictoryModal.jsx'
-import ScienceDossierModal from './components/ScienceDossierModal.jsx'
-import SolarSystem3D from './components/SolarSystem3D.jsx'
-import cartoonAudio from './game/CartoonAudio.js'
-import confetti from 'canvas-confetti'
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Volume2, VolumeX, Radio } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
-/**
- * Save the Astronaut: Sol-1 Dilemmas
- * NASA Space Apps Challenge Edition — Kids Aged 7–12
- * 10 Survival Missions with Real-Time Physical Action Animations & Survival Instincts
- */
+import { selectScenarios, BASE_TYPES } from './data/missionScenarios';
+import { toggleMute, getMuted, playClick, playSuccess, playAlarm, playDamage, playVictory, playGameOver } from './utils/sound';
+
+import HabitatStage from './components/HabitatStage';
+import MeterBar from './components/MeterBar';
+import KidFactPopup from './components/KidFactPopup';
+import ScienceModal from './components/ScienceModal';
+import StartScreen from './components/StartScreen';
+import FailureScreen from './components/FailureScreen';
+import VictoryScreen from './components/VictoryScreen';
+
+// Initial meter values
+const INITIAL_METERS = { power: 75, food: 75, shield: 65 };
+
+// Game phases
+const PHASE = {
+  START: 'start',
+  PLAY: 'play',
+  FACT: 'fact',
+  FAILURE: 'failure',
+  VICTORY: 'victory',
+};
+
 export default function App() {
-  const [currentStageIdx, setCurrentStageIdx] = useState(0)
-  const [resources, setResources] = useState({ power: 75, air: 75, shield: 75, plants: 75 })
-  const [selectedOutcome, setSelectedOutcome] = useState(null)
-  const [activeAction, setActiveAction] = useState(null)
-  const [actionBanner, setActionBanner] = useState(null)
-  const [isVictory, setIsVictory] = useState(false)
-  const [isScienceOpen, setIsScienceOpen] = useState(false)
-  const [isMuted, setIsMuted] = useState(cartoonAudio.isMuted())
-  const [survivalSeconds, setSurvivalSeconds] = useState(25)
+  const [phase, setPhase] = useState(PHASE.START);
+  const [baseType, setBaseType] = useState('mars');
+  const [scenarios, setScenarios] = useState([]);
+  const [currentSolIndex, setCurrentSolIndex] = useState(0);
+  const [meters, setMeters] = useState(INITIAL_METERS);
+  const [hoverChoice, setHoverChoice] = useState(null);
+  const [lastChoice, setLastChoice] = useState(null);
+  const [currentFact, setCurrentFact] = useState('');
+  const [isMuted, setIsMutedState] = useState(false);
+  const [scienceModalOpen, setScienceModalOpen] = useState(false);
+  const [choiceHistory, setChoiceHistory] = useState([]);
+  const [failureReason, setFailureReason] = useState('');
 
-  const currentStage = STORY_STAGES[currentStageIdx] || STORY_STAGES[0]
+  const currentScenario = scenarios[currentSolIndex];
+  const isStormActive = currentScenario?.isStormEvent && true;
 
-  // Survival Instinct Countdown Timer (25s per stage)
-  useEffect(() => {
-    if (selectedOutcome || activeAction) return
+  const handleStart = useCallback((selectedBase) => {
+    playSuccess();
+    const selectedScenarios = selectScenarios();
+    setBaseType(selectedBase);
+    setScenarios(selectedScenarios);
+    setCurrentSolIndex(0);
+    setMeters(INITIAL_METERS);
+    setChoiceHistory([]);
+    setPhase(PHASE.PLAY);
+  }, []);
 
-    const timer = setInterval(() => {
-      setSurvivalSeconds((prev) => {
-        if (prev <= 1) {
-          // Time expired alert: play warning siren and slight pressure penalty
-          cartoonAudio.playSiren()
-          setResources((r) => ({
-            ...r,
-            air: Math.max(15, r.air - 5),
-            power: Math.max(15, r.power - 5),
-          }))
-          return 10 // Reset to 10s urgent cycle
-        }
-        if (prev === 8) {
-          // Survival alarm beep
-          cartoonAudio.playSiren()
-        }
-        return prev - 1
-      })
-    }, 1000)
+  const handleChoiceSelect = useCallback((choice) => {
+    playClick();
+    const scenario = scenarios[currentSolIndex];
+    if (!scenario) return;
 
-    return () => clearInterval(timer)
-  }, [selectedOutcome, activeAction, currentStageIdx])
+    // Apply effects
+    const newMeters = {
+      power: Math.max(0, Math.min(100, meters.power + (choice.effects.power || 0))),
+      food: Math.max(0, Math.min(100, meters.food + (choice.effects.food || 0))),
+      shield: Math.max(0, Math.min(100, meters.shield + (choice.effects.shield || 0))),
+    };
 
-  // Determine current character mood
-  let currentMood = currentStage.characterMood
-  if (selectedOutcome) {
-    currentMood = selectedOutcome.outcomeMood
-  } else if (activeAction) {
-    currentMood = 'thinking'
-  } else if (survivalSeconds <= 8) {
-    currentMood = 'scared'
-  }
-
-  // When player clicks Choice A or Choice B -> Play Real-Time Action Animation!
-  const handleSelectChoice = (choice) => {
-    if (activeAction || selectedOutcome) return
-
-    // 1. Trigger action animation & real-time banner
-    cartoonAudio.playClick()
-    setActiveAction(choice.actionType)
-    setActionBanner(choice.actionBanner)
-
-    // 2. Allow 1.6s for real-time visual action before outcome reveals
-    setTimeout(() => {
-      if (choice.isCorrect) {
-        cartoonAudio.playSuccess()
-
-        // Confetti burst
-        confetti({
-          particleCount: 65,
-          spread: 70,
-          origin: { y: 0.65 },
-          colors: ['#22c55e', '#fbbf24', '#06b6d4', '#f59e0b'],
-        })
-
-        // Update resources positively
-        setResources((prev) => ({
-          power: Math.min(100, Math.max(0, prev.power + (choice.resourceDelta.power || 0))),
-          air: Math.min(100, Math.max(0, prev.air + (choice.resourceDelta.air || 0))),
-          shield: Math.min(100, Math.max(0, prev.shield + (choice.resourceDelta.shield || 0))),
-          plants: Math.min(100, Math.max(0, prev.plants + (choice.resourceDelta.plants || 0))),
-        }))
-      } else {
-        cartoonAudio.playFail()
-
-        // Update resources with penalty
-        setResources((prev) => ({
-          power: Math.min(100, Math.max(0, prev.power + (choice.resourceDelta.power || 0))),
-          air: Math.min(100, Math.max(0, prev.air + (choice.resourceDelta.air || 0))),
-          shield: Math.min(100, Math.max(0, prev.shield + (choice.resourceDelta.shield || 0))),
-          plants: Math.min(100, Math.max(0, prev.plants + (choice.resourceDelta.plants || 0))),
-        }))
-      }
-
-      setSelectedOutcome(choice)
-      setActionBanner(null)
-    }, 1600)
-  }
-
-  // When player clicks 'Try Again' after a fail
-  const handleTryAgain = () => {
-    setSelectedOutcome(null)
-    setActiveAction(null)
-    setActionBanner(null)
-    setSurvivalSeconds(25)
-  }
-
-  // When player clicks 'Next Stage' after success
-  const handleNextStage = () => {
-    setSelectedOutcome(null)
-    setActiveAction(null)
-    setActionBanner(null)
-    setSurvivalSeconds(25)
-
-    if (currentStageIdx + 1 >= STORY_STAGES.length) {
-      setIsVictory(true)
+    const isDestructive = Object.values(newMeters).some(v => v <= 20);
+    if (isDestructive) {
+      playDamage();
     } else {
-      setCurrentStageIdx((prev) => prev + 1)
-      cartoonAudio.playSiren()
+      playSuccess();
     }
-  }
 
-  // Restart the whole story (All 10 stages)
-  const handleRestart = () => {
-    setCurrentStageIdx(0)
-    setResources({ power: 75, air: 75, shield: 75, plants: 75 })
-    setSelectedOutcome(null)
-    setActiveAction(null)
-    setActionBanner(null)
-    setIsVictory(false)
-    setSurvivalSeconds(25)
-  }
+    // Check failure
+    if (Object.values(newMeters).some(v => v <= 0)) {
+      const failed = Object.entries(newMeters).find(([, v]) => v <= 0);
+      const names = { power: 'Power ⚡', food: 'Life Support & Food 🌱', shield: 'Radiation Shielding 🛡️' };
+      setFailureReason(`${names[failed[0]]} reached zero on Sol ${scenario.sol}!`);
+      setMeters(newMeters);
+      setLastChoice(choice);
+      playGameOver();
+      setPhase(PHASE.FAILURE);
+      return;
+    }
 
-  // Audio Toggle
-  const handleToggleMute = () => {
-    const muted = cartoonAudio.toggleMute()
-    setIsMuted(muted)
-  }
+    setMeters(newMeters);
+    setLastChoice(choice);
+    setChoiceHistory(prev => [...prev, { sol: scenario.sol, scenarioId: scenario.id, choiceId: choice.id, effects: choice.effects }]);
 
-  const isLastStage = currentStageIdx + 1 >= STORY_STAGES.length
+    // Show kid fact popup
+    setCurrentFact(scenario.kidFact);
+    setPhase(PHASE.FACT);
+  }, [scenarios, currentSolIndex, meters]);
+
+  const handleFactClose = useCallback(() => {
+    // Check if final sol
+    const nextIndex = currentSolIndex + 1;
+    if (nextIndex >= scenarios.length) {
+      playVictory();
+      confetti({
+        particleCount: 200,
+        spread: 120,
+        origin: { y: 0.6 },
+        colors: ['#38bdf8', '#a855f7', '#fde047', '#4ade80', '#f97316'],
+      });
+      setPhase(PHASE.VICTORY);
+    } else {
+      setCurrentSolIndex(nextIndex);
+      setHoverChoice(null);
+      setPhase(PHASE.PLAY);
+
+      // Trigger storm sound if next scenario is a storm event
+      if (scenarios[nextIndex]?.isStormEvent) {
+        setTimeout(() => playAlarm(), 500);
+      }
+    }
+  }, [currentSolIndex, scenarios]);
+
+  const handleRestart = useCallback(() => {
+    playClick();
+    setPhase(PHASE.START);
+    setScenarios([]);
+    setCurrentSolIndex(0);
+    setMeters(INITIAL_METERS);
+    setChoiceHistory([]);
+    setHoverChoice(null);
+    setLastChoice(null);
+  }, []);
+
+  const handleMuteToggle = useCallback(() => {
+    const muted = toggleMute();
+    setIsMutedState(muted);
+    if (!muted) playClick();
+  }, []);
 
   return (
-    <div
-      id="app-root"
-      className="w-full min-h-screen bg-space-black text-starfield font-body relative flex flex-col items-center justify-between p-3 sm:p-5 sm:px-8 select-none overflow-x-hidden"
-    >
-      {/* ── 3D Real Planets & Animated Solar System Background ── */}
-      <SolarSystem3D
-        environment={currentStage.environment}
-        stageIdx={currentStageIdx}
-      />
+    <div className="min-h-screen bg-space-900 font-nunito scanline">
+      {/* Starfield background */}
+      <div className="print-hide">
+        <StarfieldBG />
+      </div>
 
-      {/* ── Top Header HUD (10 Mission Stages) ── */}
-      <ComicHUD
-        currentStageIdx={currentStageIdx}
-        totalStages={STORY_STAGES.length}
-        resources={resources}
-        isMuted={isMuted}
-        onToggleMute={handleToggleMute}
-        onRestart={handleRestart}
-        onOpenScience={() => setIsScienceOpen(true)}
-      />
+      {/* Navbar */}
+      <nav className="fixed top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-2 bg-slate-900/90 backdrop-blur-md border-b border-slate-700/50 print-hide">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🚀</span>
+          <span className="font-orbitron font-black text-cyan-300 text-sm hidden sm:block">ARES KIDS</span>
+          <span className="font-orbitron text-slate-500 text-xs hidden sm:block">Survival on Sol-7</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Telemetry button */}
+          {phase !== PHASE.START && (
+            <motion.button
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-900/50 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-900/80 transition-colors text-xs font-bold font-orbitron"
+              onClick={() => { playClick(); setScienceModalOpen(true); }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Radio className="w-3.5 h-3.5" />
+              <span className="hidden sm:block">NASA TELEMETRY</span>
+              <span className="sm:hidden">📡</span>
+              <motion.div
+                className="w-1.5 h-1.5 rounded-full bg-green-400"
+                animate={{ opacity: [1, 0, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+            </motion.button>
+          )}
+          {/* Mute button */}
+          <button
+            onClick={handleMuteToggle}
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          >
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+        </div>
+      </nav>
 
-      {/* ── Center Comic Scene Canvas & Animated Leo ── */}
-      <main className="w-full max-w-5xl lg:max-w-6xl mx-auto flex-1 flex flex-col justify-center py-2 space-y-3 sm:space-y-4 relative z-10">
-        <ComicSceneCanvas
-          stage={currentStage}
-          currentMood={currentMood}
-          outcomeText={actionBanner || (selectedOutcome ? selectedOutcome.outcomeTitle : null)}
-          isCorrect={selectedOutcome ? selectedOutcome.isCorrect : null}
-          activeAction={activeAction}
-          survivalSeconds={survivalSeconds}
-        />
+      {/* Main Content */}
+      <main className="pt-14 pb-6 px-4 max-w-2xl mx-auto min-h-screen flex flex-col">
+        <AnimatePresence mode="wait">
+          {phase === PHASE.START && (
+            <motion.div key="start" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <StartScreen onStart={handleStart} />
+            </motion.div>
+          )}
 
-        {/* ── Bottom Action Area: Either Choice Cards OR Outcome Result ── */}
-        {!selectedOutcome ? (
-          <ChoiceCards
-            choiceA={currentStage.choiceA}
-            choiceB={currentStage.choiceB}
-            onSelect={handleSelectChoice}
-            disabled={activeAction !== null}
-          />
-        ) : (
-          <OutcomeBanner
-            outcome={selectedOutcome}
-            onTryAgain={handleTryAgain}
-            onNextStage={handleNextStage}
-            isLastStage={isLastStage}
-          />
-        )}
+          {(phase === PHASE.PLAY || phase === PHASE.FACT) && currentScenario && (
+            <motion.div
+              key={`play-${currentSolIndex}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="flex flex-col gap-4 flex-1"
+            >
+              {/* Sol Counter */}
+              <div className="flex items-center justify-between mt-2">
+                <div className="font-orbitron font-black text-2xl text-white">
+                  SOL <span className="text-cyan-400">{currentScenario.sol}</span>
+                  <span className="text-slate-500 text-sm ml-2">/ 7</span>
+                </div>
+                <div className="flex gap-1">
+                  {scenarios.map((s, i) => (
+                    <div key={i} className={`w-2.5 h-2.5 rounded-full border ${
+                      i < currentSolIndex ? 'bg-cyan-400 border-cyan-400' :
+                      i === currentSolIndex ? 'bg-yellow-400 border-yellow-400 animate-pulse' :
+                      'bg-transparent border-slate-600'
+                    }`} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Meters */}
+              <div className="bg-slate-900/80 rounded-2xl border border-slate-700/40 p-3 space-y-2">
+                {[
+                  { key: 'power', label: 'POWER', emoji: '⚡', colorClass: 'bg-gradient-to-r from-yellow-500 to-amber-400' },
+                  { key: 'food', label: 'LIFE SUPPORT', emoji: '🌱', colorClass: 'bg-gradient-to-r from-green-500 to-emerald-400' },
+                  { key: 'shield', label: 'SHIELDING', emoji: '🛡️', colorClass: 'bg-gradient-to-r from-purple-500 to-violet-400' },
+                ].map(m => (
+                  <MeterBar
+                    key={m.key}
+                    label={m.label}
+                    emoji={m.emoji}
+                    value={meters[m.key]}
+                    previewDelta={hoverChoice?.effects?.[m.key] ?? null}
+                    colorClass={m.colorClass}
+                  />
+                ))}
+              </div>
+
+              {/* Habitat Stage */}
+              <HabitatStage
+                meters={meters}
+                isStormActive={isStormActive}
+                hoverChoice={hoverChoice}
+                baseType={baseType}
+              />
+
+              {/* Scenario Card */}
+              <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">{currentScenario.emoji}</span>
+                  <div>
+                    <h2 className="font-orbitron font-black text-white text-base">{currentScenario.title}</h2>
+                    <a href={currentScenario.scienceLink} target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-cyan-500 hover:text-cyan-300 transition-colors">
+                      📡 {currentScenario.scienceContext} ↗
+                    </a>
+                  </div>
+                </div>
+                <p className="text-slate-300 text-sm leading-relaxed">{currentScenario.description}</p>
+              </div>
+
+              {/* Choice Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {currentScenario.choices.map((choice) => (
+                  <ChoiceCard
+                    key={choice.id}
+                    choice={choice}
+                    onHover={setHoverChoice}
+                    onSelect={handleChoiceSelect}
+                    disabled={phase === PHASE.FACT}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {phase === PHASE.FAILURE && (
+            <motion.div key="failure" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <FailureScreen
+                scenario={currentScenario}
+                meters={meters}
+                failureReason={failureReason}
+                choiceHistory={choiceHistory}
+                onRestart={handleRestart}
+              />
+            </motion.div>
+          )}
+
+          {phase === PHASE.VICTORY && (
+            <motion.div key="victory" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <VictoryScreen
+                meters={meters}
+                choiceHistory={choiceHistory}
+                baseType={baseType}
+                onRestart={handleRestart}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
-      {/* ── Footer Branding & Credit ── */}
-      <footer className="w-full max-w-5xl lg:max-w-6xl mx-auto text-center py-2 text-xs font-mono text-starfield/50 relative z-10">
-        Save the Astronaut: Sol-1 Dilemmas • NASA Space Apps Challenge Edition • 10 Missions for Junior Explorers (Ages 7–12)
-      </footer>
+      {/* Kid Fact Popup */}
+      <KidFactPopup
+        isOpen={phase === PHASE.FACT}
+        fact={currentFact}
+        onClose={handleFactClose}
+      />
 
-      {/* ── Grand Victory Modal (All 10 Stages Saved) ── */}
-      {isVictory && (
-        <ComicVictoryModal onRestart={handleRestart} />
-      )}
-
-      {/* ── NASA Science Dossier Modal ── */}
-      <ScienceDossierModal
-        isOpen={isScienceOpen}
-        onClose={() => setIsScienceOpen(false)}
+      {/* Science Modal */}
+      <ScienceModal
+        isOpen={scienceModalOpen}
+        onClose={() => setScienceModalOpen(false)}
       />
     </div>
-  )
+  );
+}
+
+// Inline ChoiceCard component
+function ChoiceCard({ choice, onHover, onSelect, disabled }) {
+  return (
+    <motion.button
+      className={`text-left bg-slate-800/80 border-2 ${disabled ? 'border-slate-700/40 opacity-60 cursor-not-allowed' : 'border-slate-600/60 hover:border-cyan-500/60 cursor-pointer'} rounded-2xl p-4 transition-all card-hover`}
+      onHoverStart={() => !disabled && onHover(choice)}
+      onHoverEnd={() => onHover(null)}
+      onTouchStart={() => !disabled && onHover(choice)}
+      onClick={() => !disabled && onSelect(choice)}
+      whileHover={disabled ? {} : { scale: 1.02 }}
+      whileTap={disabled ? {} : { scale: 0.98 }}
+      disabled={disabled}
+    >
+      {/* Emoji + Title */}
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-3xl">{choice.emoji}</span>
+        <div>
+          <h3 className="font-orbitron font-black text-white text-sm">{choice.title}</h3>
+          <p className="text-xs text-slate-400">{choice.subtext}</p>
+        </div>
+      </div>
+
+      {/* Description */}
+      <p className="text-slate-300 text-xs mb-3 leading-relaxed">{choice.description}</p>
+
+      {/* Effect badges */}
+      <div className="flex flex-wrap gap-1.5">
+        {[
+          { key: 'power', emoji: '⚡', value: choice.effects.power },
+          { key: 'food', emoji: '🌱', value: choice.effects.food },
+          { key: 'shield', emoji: '🛡️', value: choice.effects.shield },
+        ].filter(e => e.value !== 0).map(e => (
+          <span
+            key={e.key}
+            className={`text-xs font-bold px-2 py-0.5 rounded-full border font-orbitron ${
+              e.value > 0
+                ? 'bg-green-900/60 border-green-500/40 text-green-300'
+                : 'bg-red-900/60 border-red-500/40 text-red-300'
+            }`}
+          >
+            {e.emoji} {e.value > 0 ? `+${e.value}` : e.value}
+          </span>
+        ))}
+      </div>
+    </motion.button>
+  );
+}
+
+// Inline Starfield background
+function StarfieldBG() {
+  const stars = Array.from({ length: 80 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 2 + 0.5,
+    opacity: Math.random() * 0.6 + 0.1,
+    delay: Math.random() * 4,
+  }));
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      {stars.map(star => (
+        <motion.div
+          key={star.id}
+          className="absolute rounded-full bg-white"
+          style={{
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            opacity: star.opacity,
+          }}
+          animate={{ opacity: [star.opacity, star.opacity * 0.3, star.opacity] }}
+          transition={{ duration: 2 + star.delay, repeat: Infinity, delay: star.delay }}
+        />
+      ))}
+    </div>
+  );
 }
